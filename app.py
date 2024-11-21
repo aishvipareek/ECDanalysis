@@ -15,137 +15,6 @@ USER_CREDENTIALS = {
     "user2": "password2"
 }
 
-# Comprehensive CSS to remove background and padding
-st.markdown(
-    """
-    <style>
-    /* General reset for container backgrounds and padding */
-    .block-container {
-        background-color: transparent !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-
-    /* Removing padding and margins in specific containers */
-    .reportview-container, .css-18e3th9 {
-        padding: 0 !important;
-        margin: 0 !important;
-        background-color: transparent !important;
-    }
-
-    /* Ensuring the main content block has no background or padding */
-    .main {
-        background-color: transparent !important;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-
-    /* Force the sidebar styling and remove any padding/margins */
-    section[data-testid="stSidebar"] {
-        background-color: #394867 !important;
-        color: white;
-        padding: 0 !important;
-        margin: 0 !important;
-    }
-
-    /* Login container styling */
-    .login-container {
-        background-color: #1E1E1E;
-        padding: 40px;
-        border-radius: 10px;
-        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-        text-align: center;
-        width: 60%;
-        margin: 0 auto;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    /* Welcome message */
-    .welcome-header {
-        font-size: 32px;
-        font-weight: bold;
-        color: #56cfe1;
-        margin-bottom: 10px;
-    }
-
-    /* Sub-header for login */
-    .login-header {
-        font-size: 24px;
-        font-weight: bold;
-        color: #f4a261;
-        margin-bottom: 30px;
-    }
-
-    /* Input field styles */
-    .stTextInput > div > input {
-        padding: 10px;
-        border-radius: 5px;
-        border: 1px solid #d9d9d9;
-        width: 100%;
-    }
-
-    /* Button styles */
-    .stButton button {
-        background-color: #56cfe1;
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        font-weight: bold;
-        width: 100%;
-    }
-
-    /* Longer Login Button */
-    .login-button {
-        width: 100% !important;
-        padding: 12px !important;
-        font-size: 18px !important;
-        border-radius: 5px !important;
-    }
-
-    /* Visualization headers */
-    .viz-header {
-        font-size: 24px;
-        color: #56cfe1;
-        font-weight: bold;
-        margin-bottom: 10px;
-    }
-
-    /* Chart titles */
-    .chart-title {
-        font-size: 18px;
-        color: #d1d1d1;
-        margin-bottom: 20px;
-        font-weight: bold;
-    }
-
-    /* Forgot password text */
-    .forgot-password {
-        font-size: 14px;
-        color: #f4a261;
-        text-align: right;
-        margin-top: 10px;
-        cursor: pointer;
-    }
-
-    /* Custom style for the logout button */
-    .logout-button {
-        background-color: #f48c06; /* Change this to orange */
-        color: white;
-        padding: 10px 20px;
-        border: none;
-        border-radius: 5px;
-        font-weight: bold;
-        cursor: pointer;
-        width: 100%; /* Full width for sidebar button */
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 # Function to verify login credentials
 def verify_login(username, password):
     return USER_CREDENTIALS.get(username) == password
@@ -244,7 +113,7 @@ else:
             plt.ylabel('Values')
             st.pyplot(plt)
 
-    # Dynamic Visualization with options for Line, Bar, or Pie chart
+    # Dynamic Visualization with two file uploads and comparison
     elif option == "📉 Dynamic Visualization":
         st.markdown('<div class="viz-header">📉 Dynamic Visualization</div>', unsafe_allow_html=True)
 
@@ -267,25 +136,33 @@ else:
                 # Allow user to select chart type for dynamic data
                 chart_type = st.radio("Select Chart Type", ("Line", "Bar", "Pie"))
 
-                # Generate chart based on selected type
+                # Allow user to select columns for plotting
+                selected_column_1 = st.selectbox("Select column from File 1", df1.columns)
+                selected_column_2 = st.selectbox("Select column from File 2", df2.columns)
+
+                # Handling mixed-type columns by selecting specific columns for plotting
                 if chart_type == "Line":
                     st.write("📈 Line Chart of the data:")
-                    st.line_chart(df1)
+                    plt.figure(figsize=(10, 5))
+                    plt.plot(df1[selected_column_1], label=selected_column_1)
+                    plt.plot(df2[selected_column_2], label=selected_column_2)
+                    plt.legend()
+                    plt.title('Line Chart of Selected Columns')
+                    plt.xlabel('Index')
+                    plt.ylabel('Values')
+                    st.pyplot(plt)
 
                 elif chart_type == "Bar":
                     st.write("📊 Bar Chart of the data:")
-                    st.bar_chart(df1)
+                    df_combined = pd.DataFrame({selected_column_1: df1[selected_column_1], selected_column_2: df2[selected_column_2]})
+                    st.bar_chart(df_combined)
 
                 elif chart_type == "Pie":
                     st.write("🍰 Pie Chart of the data:")
-                    df1.set_index(df1.columns[0]).plot.pie(y=df1.columns[1], autopct='%1.1f%%', figsize=(8, 8))
-                    st.pyplot()
+                    fig, ax = plt.subplots(figsize=(8, 8))
+                    df1.set_index(selected_column_1).plot.pie(y=selected_column_2, autopct='%1.1f%%', ax=ax)
+                    st.pyplot(fig)
 
             except Exception as e:
                 st.error(f"Error: Could not process the uploaded files. Details: {e}")
 
-    # Logout button outside sidebar for better user experience
-    if st.button("Logout"):
-        st.session_state.logged_in = False
-        st.session_state.username = ""
-        st.success("You have logged out successfully.")
