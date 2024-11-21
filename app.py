@@ -249,47 +249,45 @@ else:
         st.markdown('<div class="viz-header">📉 Dynamic Visualization</div>', unsafe_allow_html=True)
 
         # File upload widget for the user to upload two datasets
-        uploaded_file_1 = st.file_uploader("Upload the first CSV file", type=["csv"])
-        uploaded_file_2 = st.file_uploader("Upload the second CSV file", type=["csv"])
+        uploaded_file_1 = st.file_uploader("Upload the first CSV file", type="csv")
+        uploaded_file_2 = st.file_uploader("Upload the second CSV file", type="csv")
 
         if uploaded_file_1 is not None and uploaded_file_2 is not None:
-            try:
-                # Load both files
-                df1 = pd.read_csv(uploaded_file_1)
-                df2 = pd.read_csv(uploaded_file_2)
+            # Reading uploaded CSV files into DataFrames
+            df1 = pd.read_csv(uploaded_file_1)
+            df2 = pd.read_csv(uploaded_file_2)
 
-                # Display first few rows of both datasets
-                st.write("📊 Data from File 1:")
-                st.write(df1.head())
-                st.write("📊 Data from File 2:")
-                st.write(df2.head())
+            # Displaying the first few rows of each file
+            st.write("Preview of the first dataset:")
+            st.write(df1.head())
+            st.write("Preview of the second dataset:")
+            st.write(df2.head())
 
-                # Allow the user to select columns for comparison
-                st.write("Select columns for comparison:")
-                selected_column_1 = st.selectbox("Column from File 1", df1.columns)
-                selected_column_2 = st.selectbox("Column from File 2", df2.columns)
+            # Selecting columns for comparison
+            selected_columns_1 = st.multiselect("Select columns for the first dataset:", df1.columns)
+            selected_columns_2 = st.multiselect("Select columns for the second dataset:", df2.columns)
 
-                # Align or truncate data to ensure the same length for both columns
-                length_1 = len(df1[selected_column_1])
-                length_2 = len(df2[selected_column_2])
+            # Displaying the dynamic plot
+            if st.button("Compare the datasets"):
+                st.markdown(f'<div class="chart-title">Dynamic Comparison of Datasets</div>', unsafe_allow_html=True)
 
-                # Ensure both columns are the same length by truncating the longer one
-                if length_1 > length_2:
-                    df1 = df1.head(length_2)  # Truncate the first dataframe to match length of second
-                elif length_2 > length_1:
-                    df2 = df2.head(length_1)  # Truncate the second dataframe to match length of first
+                # Plotting both datasets side by side for comparison
+                fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(15, 6))
+                
+                # Plotting for the first dataset
+                for column in selected_columns_1:
+                    axes[0].plot(df1[column], label=column)
+                axes[0].legend()
+                axes[0].set_title("Dataset 1")
+                axes[0].set_xlabel("Index")
+                axes[0].set_ylabel("Values")
 
-                # Now that the lengths are the same, we can plot
-                st.markdown('<div class="chart-title">Comparison of Selected Columns</div>', unsafe_allow_html=True)
-                plt.figure(figsize=(10, 5))
-                x_values = range(len(df1[selected_column_1]))  # Use the same x-values for both datasets
-                plt.bar(x_values, df1[selected_column_1], alpha=0.5, label=selected_column_1)
-                plt.bar(x_values, df2[selected_column_2], alpha=0.5, label=selected_column_2)
-                plt.legend()
-                plt.title('Comparison of Columns')
-                plt.xlabel('Index')
-                plt.ylabel('Values')
-                st.pyplot(plt)
+                # Plotting for the second dataset
+                for column in selected_columns_2:
+                    axes[1].plot(df2[column], label=column)
+                axes[1].legend()
+                axes[1].set_title("Dataset 2")
+                axes[1].set_xlabel("Index")
+                axes[1].set_ylabel("Values")
 
-            except Exception as e:
-                st.error(f"Error in processing uploaded files: {e}")
+                st.pyplot(fig)
