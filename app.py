@@ -244,7 +244,7 @@ else:
             plt.ylabel('Values')
             st.pyplot(plt)
 
-    # Dynamic Visualization with two file uploads and comparison
+    # Dynamic Visualization with options for Line, Bar, or Pie chart
     elif option == "📉 Dynamic Visualization":
         st.markdown('<div class="viz-header">📉 Dynamic Visualization</div>', unsafe_allow_html=True)
 
@@ -260,37 +260,32 @@ else:
 
                 # Display first few rows of both datasets
                 st.write("📊 Data from File 1:")
-                st.write(df1.head())
+                st.dataframe(df1.head())
                 st.write("📊 Data from File 2:")
-                st.write(df2.head())
+                st.dataframe(df2.head())
 
-                # Allow the user to select columns for comparison
-                st.write("Select columns for comparison:")
-                selected_column_1 = st.selectbox("Column from File 1", df1.columns)
-                selected_column_2 = st.selectbox("Column from File 2", df2.columns)
+                # Allow user to select chart type for dynamic data
+                chart_type = st.radio("Select Chart Type", ("Line", "Bar", "Pie"))
 
-                # Align or truncate data to ensure the same length for both columns
-                length_1 = len(df1[selected_column_1])
-                length_2 = len(df2[selected_column_2])
+                # Generate chart based on selected type
+                if chart_type == "Line":
+                    st.write("📈 Line Chart of the data:")
+                    st.line_chart(df1)
 
-                # Ensure both columns are the same length by truncating the longer one
-                if length_1 > length_2:
-                    df1 = df1.head(length_2)  # Truncate the first dataframe to match length of second
-                elif length_2 > length_1:
-                    df2 = df2.head(length_1)  # Truncate the second dataframe to match length of first
+                elif chart_type == "Bar":
+                    st.write("📊 Bar Chart of the data:")
+                    st.bar_chart(df1)
 
-                # Now that the lengths are the same, we can plot
-                st.markdown('<div class="chart-title">Comparison of Selected Columns</div>', unsafe_allow_html=True)
-                plt.figure(figsize=(10, 5))
-                x_values = range(len(df1[selected_column_1]))  # Use the same x-values for both datasets
-                plt.bar(x_values, df1[selected_column_1], alpha=0.5, label=selected_column_1)
-                plt.bar(x_values, df2[selected_column_2], alpha=0.5, label=selected_column_2)
-                plt.legend()
-                plt.title('Comparison of Columns')
-                plt.xlabel('Index')
-                plt.ylabel('Values')
-                st.pyplot(plt)
+                elif chart_type == "Pie":
+                    st.write("🍰 Pie Chart of the data:")
+                    df1.set_index(df1.columns[0]).plot.pie(y=df1.columns[1], autopct='%1.1f%%', figsize=(8, 8))
+                    st.pyplot()
 
             except Exception as e:
-                st.error(f"Error in processing uploaded files: {e}")
+                st.error(f"Error: Could not process the uploaded files. Details: {e}")
 
+    # Logout button outside sidebar for better user experience
+    if st.button("Logout"):
+        st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.success("You have logged out successfully.")
