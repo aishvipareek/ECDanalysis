@@ -269,10 +269,20 @@ else:
                 selected_column_1 = st.selectbox("Column from File 1", df1.columns)
                 selected_column_2 = st.selectbox("Column from File 2", df2.columns)
 
-                # Display a side-by-side bar plot
+                # Align or truncate data to ensure the same length for both columns
+                length_1 = len(df1[selected_column_1])
+                length_2 = len(df2[selected_column_2])
+
+                # Ensure both columns are the same length by truncating the longer one
+                if length_1 > length_2:
+                    df1 = df1.head(length_2)  # Truncate the first dataframe to match length of second
+                elif length_2 > length_1:
+                    df2 = df2.head(length_1)  # Truncate the second dataframe to match length of first
+
+                # Now that the lengths are the same, we can plot
                 st.markdown('<div class="chart-title">Comparison of Selected Columns</div>', unsafe_allow_html=True)
                 plt.figure(figsize=(10, 5))
-                x_values = range(len(df1[selected_column_1]))
+                x_values = range(len(df1[selected_column_1]))  # Use the same x-values for both datasets
                 plt.bar(x_values, df1[selected_column_1], alpha=0.5, label=selected_column_1)
                 plt.bar(x_values, df2[selected_column_2], alpha=0.5, label=selected_column_2)
                 plt.legend()
@@ -283,3 +293,4 @@ else:
 
             except Exception as e:
                 st.error(f"Error in processing uploaded files: {e}")
+
